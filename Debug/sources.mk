@@ -15,4 +15,5 @@ EXECUTABLES :=
 SUBDIRS := \
 src \
 src/test \
+src/hardware \
 

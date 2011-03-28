@@ -4,7 +4,7 @@
 
 typedef enum { pid_p=0, pid_i=1, pid_d=2 } pid;
 #define PID_LENGTH (3)
-char PID_LETTERS[PID_LENGTH] = {'p', 'i', 'd'};
+extern char PID_LETTERS[PID_LENGTH];
 
 // the number of heater temperatures to average in the current value.
 #define HEATER_HISTORY_LENGTH (5)
@@ -14,15 +14,17 @@ char PID_LETTERS[PID_LENGTH] = {'p', 'i', 'd'};
 // The temperature control dead zone in deg C
 #define HALF_DEAD_ZONE 5
 
+#define WAIT_AT_TEMPERATURE 10
+
 
 /* ----------------------
  * Heater data structure
  * ---------------------- */
-typedef struct
+struct heater
 {
 
   // Heater Settings
-  int heater_pin;
+  int * heater_pins;
   float pid_gains[PID_LENGTH]; // configurable gain constants for each of proportional integral and derivative.
 
   // Temperature Sensor Settings
@@ -37,8 +39,14 @@ typedef struct
 
   int at_target; // flags that the a steady-state target temperature has been reached (+ or - dead zone / 2 )
 
+  // Callback functions
+
+  int (* init_heater_pins) (int *); // int * pins
+  int (* write_heater_pins) (int *, char); //int * pins, byte value
+  void (* shutdown_heater_pins) (int *); // int * pins
+
   /** Event called each time the temperature stabalizes at or slightly above the target temperature. */
-  int (*target_temperature_listener)();
+  int (* target_temperature_listener)();
 
   // Private values
   float _previous_target;
@@ -47,20 +55,20 @@ typedef struct
   int _raw_analog_input;
 
   float _history[HEATER_HISTORY_LENGTH]; // previous temperature values
-} heater;
+};
 
 
 /* ----------------------
  * Heater functions
  * ---------------------- */
 
-void heater_init(heater * h);
+void heater_init(struct heater * h, unsigned long time);
 
-int heater_update(heater * h);
+int heater_pump(struct heater * h, unsigned long time);
 
-void heater_reset(heater * h);
-void heater_shutdown(heater * h);
+void heater_reset(struct heater * h, unsigned long time);
+void heater_shutdown(struct heater * h);
 
-char* heater_error_message(heater * h, int error_code);
+char* heater_error_message(struct heater * h, int error_code);
 
 #endif

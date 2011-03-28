@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "toolhead_error.h"
 #include "heater.h"
 #include "temperature_sensor.h"
+#include "toolhead_error.h"
 
-char* heater_error_message(heater * h, int error_code)
+char* heater_error_message(struct heater * h, int error_code)
 {
   char* sensor_name = TEMPERATURE_SENSOR_NAMES[h->sensor->type];
   char* message ="";

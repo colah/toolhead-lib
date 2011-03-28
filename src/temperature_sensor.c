@@ -1,25 +1,24 @@
 #include "toolhead_error.h"
 #include "temperature_sensor.h"
-#include "thermistor_tables.h"
+
+void init_temperature_sensor(struct temperature_sensor * sensor)
+{
+  sensor->_thermistor_table = TEN_K_THERMISTOR_MAP;
+  sensor->_thermistor_table_length = THERMISTOR_MAP_LENGTH;
+}
 
 /*
  * Private: reads the heater pin and returns it's analog value (ranging from zero to 1022). Fails if sensor is disconnected.
  */
 int read_raw_temperature_sensor_input(struct temperature_sensor * sensor, int * raw_analog_input)
 {
-  int raw = sensor->analog_read(sensor->pins[0]);
-  *raw_analog_input = raw;
+  int error_code = sensor->raw_read(sensor->pins, raw_analog_input);
 
   // Fatal error if the sensor is disconnected
-  if (raw == 1023)
-  {
-    return temperature_sensor_disconnected_error;
-  }
-  //Otherwise set the analog input value
-  else
-  {
-    return 0;
-  }
+  if (*raw_analog_input == 1023)
+    error_code |= temperature_sensor_disconnected_error;
+
+  return error_code;
 }
 
 
@@ -33,8 +32,8 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
   int n_of_samples = 3;
   int raw = 0;
 
-  short** table = (sensor->table)->table;
-  int length = (sensor->table)->length;
+  short (* table)[2] = sensor->_thermistor_table;
+  int length = sensor->_thermistor_table_length;
 
 
   switch(sensor->type)
@@ -64,7 +63,7 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
       }
 
       // Overflow: Set to last value in the table
-      *temperature = table[length-1][1];
+      *temperature = table[0][1];
       break;
 
     case temperature_sensor_type_ad595_thermocouple:
@@ -73,42 +72,7 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
       break;
 
     case temperature_sensor_type_max6675_thermocouple:
-      error_code |= temperature_sensor_not_supported;
-      *temperature = 0;
-
-/*      int value = 0;
-      //TODO: non-arduino-specific max6675 implementation
-      digitalWrite(sensor->pins[max6755_ss], 0); // Enable device
-
-      /* Cycle the clock for dummy bit 15 */
-/*      digitalWrite(sensor->pins[max6755_sck],1);
-      digitalWrite(sensor->pins[max6755_sck],0);
-
-      /* Read bits 14-3 from MAX6675 for the Temp
-       	 Loop for each bit reading the value 
-       */
-/*      for (int i=11; i>=0; i--)
-      {
-        digitalWrite(sensor->pins[max6755_sck],1);  // Set Clock to HIGH
-        value += digitalRead(sensor->pins[max6755_miso]) << i;  // Read data and add it to our variable
-        digitalWrite(sensor->pins[max6755_sck],0);  // Set Clock to LOW
-      }
-
-      /* Read the TC Input inp to check for TC Errors */
-/*      digitalWrite(sensor->pins[max6755_sck],1); // Set Clock to HIGH
-      int error_tc = digitalRead(sensor->pins[max6755_miso]); // Read data
-      digitalWrite(sensor->pins[max6755_sck],0);  // Set Clock to LOW
-
-      digitalWrite(sensor->pins[max6755_ss], 1); //Disable Device
-
-      if(error_tc)
-      {
-        *temperature = 2000;
-        if (h->target !=0) error_code |= temperature_sensor_internal_error;
-      }
-      else
-        *temperature = value/4;
-*/
+      error_code |= read_raw_temperature_sensor_input(sensor, temperature);
       break;
 
     default:
@@ -117,3 +81,40 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
 
   return error_code;
 }
+
+// TODO: calculate this in C for different valued resistors.
+// RS thermistor 484-0149; EPCOS B57550G103J
+// Made with createTemperatureLookup.py (http://svn.reprap.org/trunk/reprap/firmware/Arduino/utilities/createTemperatureLookup.py)
+// ./createTemperatureLookup.py --r0=10000 --t0=25 --r1=0 --r2=4700 --beta=3480 --max-adc=1023
+// r0: 10000
+// t0: 25
+// r1: 0
+// r2: 4700
+// beta: 3480
+// max adc: 1023
+
+short TEN_K_THERMISTOR_MAP[THERMISTOR_MAP_LENGTH][2] = {
+     {1, 599},
+     {54, 160},
+     {107, 123},
+     {160, 103},
+     {213, 90},
+     {266, 79},
+     {319, 70},
+     {372, 62},
+     {425, 55},
+     {478, 49},
+     {531, 43},
+     {584, 37},
+     {637, 31},
+     {690, 25},
+     {743, 19},
+     {796, 12},
+     {849, 5},
+     {902, -3},
+     {955, -16},
+     {1008, -42}
+};
+
+char * TEMPERATURE_SENSOR_NAMES[3] =
+    {"thermistor", "AD595 thermocouple", "MAX6675 thermocouple"};

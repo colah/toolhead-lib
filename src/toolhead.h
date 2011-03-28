@@ -16,10 +16,10 @@ struct toolhead
 //  struct solenoid * coolant; // Valve solenoid control data
 
   // Motor
-  (function *) pump_motor;  // Updates the motor on each pump_toolhead call.
+  int (* pump_motor)(void *);  // Updates the motor on each pump_toolhead call.
   void * motor_data; // Reserved for external use by the function pointed to by move_motor.
-}
+};
 
-void pump_toolhead(toolhead * t);
+void pump_toolhead(struct toolhead * t, unsigned long time);
 
 #endif

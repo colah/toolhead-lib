@@ -1,41 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include "toolhead_error.h"
 #include "temperature_sensor.h"
 #include "heater.h"
 //#include "pins_arduino.h"
 
-void heater_init(heater * h)
+void heater_init(struct heater * h, unsigned long time)
 {
-  //Setup our pin modes
-  pinMode(h->heater_pin, OUTPUT);
-  pinMode(h->sensor_pin, INPUT);
-
-  analogWrite(h->heater_pin, 0); // heater is off by default
-  digitalWrite(h->sensor_pin, false); // pull down resistor for the sensor input
-
   // Current value defaults
   h->target = 0.0;
   h->current = 0.0;
   for (int i = 0; i<PID_LENGTH; i++)
     h->pid_values[i] = 0.0;
-  h->at_target = false;
+  h->at_target = 0;
 
   // Private variable defaults
   h->_target_reached_at = 0;
   for (int i = 0; i<HEATER_HISTORY_LENGTH; i++)
     h->_history[i] = 0.0;
 
-  // Resetting the rest ofthe heater variables
-  heater_reset(h);
+  // Resetting the rest of the heater variables
+  heater_reset(h, time);
 
+  // Hardware setup
+  if (h->init_heater_pins != NULL) h->init_heater_pins(h->heater_pins);
 }
 
 
 /*
  * Private: reads and returns the heater's temperature in degrees celsius.
  */
-int heater_read_sensor(heater * h)
+int heater_read_sensor(struct heater * h)
 {
-  float temperature;
+  int temperature;
 
   // Read the sensor temperature and record any errors
   int error_code = read_temperature_sensor(h->sensor, &temperature);
@@ -46,19 +43,19 @@ int heater_read_sensor(heater * h)
     error_code |= heater_overheated_error;
   }
 
-  h->instantaneous = temperature;
+  h->instantaneous = (float) temperature;
 
   return error_code;
 }
 
 
-void heater_update_target_temperature_listener(Heater *h)
+void heater_update_target_temperature_listener(struct heater * h)
 {
-  bool inside_deadzone = ( h->current >= h->target - HALF_DEAD_ZONE );
+  int inside_deadzone = ( h->current >= h->target - HALF_DEAD_ZONE );
 
-  if (h->_previous_target != h->target || inside_deadzone == false)
+  if (h->_previous_target != h->target || inside_deadzone == 0)
   {
-    h->at_target = false;
+    h->at_target = 0;
     h->_target_reached_at = 0;
   }
   h->_previous_target = h->target;
@@ -72,7 +69,7 @@ void heater_update_target_temperature_listener(Heater *h)
     // that we have reached the target temperature.
     if(h->_previous_time - h->_target_reached_at > WAIT_AT_TEMPERATURE)
     {
-      h->at_target = true;
+      h->at_target = 1;
       // Fire a target temperature event to signal that we have acheived a steady state temperature.
       if (h->target_temperature_listener != NULL) h->target_temperature_listener();
     }
@@ -81,25 +78,24 @@ void heater_update_target_temperature_listener(Heater *h)
 
 
 
-int heater_update(heater * h)
+int heater_pump(struct heater * h, unsigned long time)
 {
   int error_code = heater_read_sensor(h);
   float temperature = h->instantaneous;
   float previous_p = h->pid_values[pid_p];
 
   // Updating the time since the last iteration
-  unsigned long time = millis();
   float dt = 0.001*(float)(time - h->_previous_time);
   h->_previous_time = time;
-  if (dt <= 0) // Don't do it when millis() has rolled over
+  if (dt <= 0) // Don't execute the pid when time has rolled over
     return error_code;
 
 
   // Updating the averaged current temperature value. Average is over the last 5 temperature values.
   float history_sum = 0.0;
-  for (int i = 0; i<HEATER_HISTORY_LENGTH; i++)
+  for (int i = HEATER_HISTORY_LENGTH-1; i>=0; i--)
   {
-    h->_history[i] = ( i == 0? temperature : h->_history[i-1] );
+    h->_history[i] = ( (i == 0)? temperature : h->_history[i-1] );
     history_sum += h->_history[i];
   }
   h->current = history_sum / HEATER_HISTORY_LENGTH;
@@ -117,7 +113,7 @@ int heater_update(heater * h)
   if(integral > PID_INTEGRAL_LIMIT)
   {
     // Temp isn't increasing - extruder hardware error
-    error_code = HEATER_NOT_HEATING_SENSOR;
+    error_code = heater_not_heating_sensor_error;
     integral = PID_INTEGRAL_LIMIT;
   }
   // Integral below limit (integral wind-down?)
@@ -139,9 +135,9 @@ int heater_update(heater * h)
   for (int i = 0; i < PID_LENGTH; i++)
     _output += h->pid_values[i]*h->pid_gains[i];
 
-  int output = constrain( (int) _output, 0, 255);
+  int output = (_output < 0)? 0 : (_output > 255)? 255 : (int) _output;
 
-  analogWrite(h->heater_pin, (byte)output);
+  if (h->write_heater_pins != NULL) h->write_heater_pins(h->heater_pins, (char)output);
 
 
   // Updating the event listener if we have reached a steady state target temperature
@@ -157,9 +153,9 @@ int heater_update(heater * h)
  won't go down to, even with the heater off, so the integral error grows).  Call this 
  whenever you change the target value.
  */
-void heater_reset(heater * h)
+void heater_reset(struct heater * h, unsigned long time)
 {
-  h->_previous_time = millis();
+  h->_previous_time = time;
   h->pid_values[pid_p] = 0;
   h->pid_values[pid_i] = 0;
 }
@@ -168,11 +164,11 @@ void heater_reset(heater * h)
 /*
  * Shuts down the heater and frees it's memory for later use.
  */
-void heater_shutdown(heater * h)
+void heater_shutdown(struct heater * h)
 {
   if (h == NULL) return;
-  analogWrite(h->heater_pin, 0); //good to not leave that heater on fire :)
+  if (h->shutdown_heater_pins != NULL) h->shutdown_heater_pins(h->heater_pins);
   free(h);        /* free the structure itself */
-  //free(h->data);  /* free any child arrays held by the structure */
 }
 
+char PID_LETTERS[PID_LENGTH] = {'p', 'i', 'd'};
