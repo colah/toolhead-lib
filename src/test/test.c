@@ -6,6 +6,7 @@
 
 struct temperature_sensor sensor;
 struct heater h;
+int pin_value;
 
 int test_analog_read(int * pin, int * temperature)
 {
@@ -14,11 +15,11 @@ int test_analog_read(int * pin, int * temperature)
 }
 
 
-void verify_test(char* test_name, int actual, int expected)
+void verify_test(char* test_name, float actual, float expected)
 {
   if (actual != expected)
   {
-    fprintf(stderr, "FAILURE: %s\n", test_name);
+    fprintf(stderr, "FAILURE: %s   (actual: %f, expected: %f)\n", test_name, actual, expected);
   }
   else
   {
@@ -31,7 +32,7 @@ void test_temperature_sensors()
 {
   init_temperature_sensor(&sensor);
 
-  int pin_value = 0;
+  pin_value = 0;
   sensor.pins = &pin_value;
   sensor.raw_read = &test_analog_read;
 
@@ -102,29 +103,32 @@ void test_heater()
   h.target = 100;
   h.thermal_cutoff = 200;
 
-  heater_init(&h, 0);
+  heater_init(&h, (unsigned long)0);
 
   // normal heater operation
-  sensor.pins[0] = 20;
+  pin_value = 20;
   h.pid_gains[pid_p] = 1;
   h.pid_gains[pid_i] = 50;
   h.pid_gains[pid_d] = 1;
 
   int instantaneous = 0;
   read_temperature_sensor(&sensor, &instantaneous);
-  int average = instantaneous/HEATER_HISTORY_LENGTH;
+  float average = ( (float)instantaneous)/HEATER_HISTORY_LENGTH;
 
   unsigned long time = 10;
+  float time_millis = (((int)time)*0.001);
 
-  int error = 100 - instantaneous;
-  int integral = h.pid_gains[pid_i] * ((int)time) * error;
+  float error = 100 - instantaneous;
+  float derivative = error / time_millis;
+  float integral = time_millis * error;
 
   heater_pump(&h, time);
 
   verify_test("Normal Heater Operation: Averaged Current Value", h.current, average);
   verify_test("Normal Heater Operation: Instantaneous Value", h.instantaneous, instantaneous);
   verify_test("Normal Heater Operation: P", h.pid_values[pid_p], error);
-  verify_test("Normal Heater Operation: I", h.pid_values[pid_p], integral);
+  verify_test("Normal Heater Operation: I", h.pid_values[pid_i], integral);
+  verify_test("Normal Heater Operation: D", h.pid_values[pid_d], derivative);
 
 }
 

@@ -8,7 +8,6 @@
 void heater_init(struct heater * h, unsigned long time)
 {
   // Current value defaults
-  h->target = 0.0;
   h->current = 0.0;
   for (int i = 0; i<PID_LENGTH; i++)
     h->pid_values[i] = 0.0;
