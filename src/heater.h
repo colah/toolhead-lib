@@ -71,4 +71,6 @@ void heater_shutdown(struct heater * h);
 
 char* heater_error_message(struct heater * h, int error_code);
 
+int shutdown_heater_pins(struct heater * h);
+
 #endif

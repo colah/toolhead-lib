@@ -10,7 +10,6 @@ enum max6755_pins
 };
 
 int init_heater_pins(int * heater_pins, int * sensor_pin);
-int shutdown_heater_pins(int * heater_pins, int * sensor_pin);
 
 int init_analog_thermal_sensor_pin(int * pin);
 int shutdown_analog_thermal_sensor_pin(int * pin);

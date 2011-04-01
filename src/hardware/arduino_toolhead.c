@@ -1,21 +1,44 @@
 #include "arduino_toolhead.h"
+#include "../solenoid.h"
+#include "../heater.h"
 
 #ifdef ARDUINO
+
+// Solenoid
+// =======================
+void init_solenoid_hardware(struct solenoid * s)
+{
+  pinMode(s->pin_config[0], OUTPUT);
+  digitalWrite(s->pin_config[0], (s->invert_output != 0));
+}
+
+void pump_solenoid_hardware(struct solenoid * s)
+{
+  int target = s->_target;
+  digitalWrite(s->pin_config[0], (s->invert_output != 0) ^ (target != 0));
+  s->_state = target;
+}
+
 
 // Heater
 // =======================
 
-int init_heater_pins(int * heater_pins)
+int init_heater_pins(int * heater_pin)
 {
-  pinMode(*heater_pins, OUTPUT);
+  pinMode(*heater_pin, OUTPUT);
   analogWrite(*heater_pin, 0); // heater is off by default
 
   return 0;
 }
 
-int shutdown_heater_pins(int * heater_pins, int * sensor_pin)
+int write_heater_pins(int * heater_pin, char value)
 {
-  analogWrite(*heater_pin, 0); // turn off the heater!
+  analogWrite(*heater_pin, value);
+}
+
+int shutdown_heater_pins(struct heater * h)
+{
+  analogWrite(*(h->heater_pins), 0); // turn off the heater!
   return 0;
 }
 
@@ -25,7 +48,7 @@ int shutdown_heater_pins(int * heater_pins, int * sensor_pin)
 int init_analog_thermal_sensor_pin(int * pin)
 {
    pinMode(*pin, INPUT);
-   digitalWrite(*pin); // pull down resistor for the sensor input
+   digitalWrite(*pin, 1); // pull down resistor for the sensor input
 
    return 0;
 }

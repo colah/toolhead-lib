@@ -9,8 +9,8 @@ RM := rm -rf
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir.mk
+-include test/subdir.mk
 -include src/subdir.mk
--include src/test/subdir.mk
 -include src/hardware/subdir.mk
 -include objects.mk
 
