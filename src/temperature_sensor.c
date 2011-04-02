@@ -25,6 +25,7 @@ int read_raw_temperature_sensor_input(struct temperature_sensor * sensor, int * 
 /* Reads the given thermistor or thermocouple and stores it's value in the temperature int */
 int read_temperature_sensor(struct temperature_sensor * sensor, int * temperature)
 {
+  int i; //iterator
   int error_code = 0;
   int raw_analog_input = 0;
 
@@ -40,7 +41,7 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
   {
     case temperature_sensor_type_thermistor:
 
-      for(int i = 0; i < n_of_samples; i++)
+      for(i = 0; i < n_of_samples; i++)
       {
         error_code |= read_raw_temperature_sensor_input(sensor, &raw_analog_input);
         raw += raw_analog_input;
@@ -49,7 +50,7 @@ int read_temperature_sensor(struct temperature_sensor * sensor, int * temperatur
       raw = raw / n_of_samples;
 
       // TODO: This should do a binary chop
-      for (int i=1; i<length; i++)
+      for (i=1; i<length; i++)
       {
         if (table[i][0] > raw)
         {

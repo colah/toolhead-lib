@@ -1,6 +1,11 @@
 #ifndef toolhead_h
 #define toolhead_h
 
+#include "temperature_sensor.h"
+#include "heater.h"
+#include "solenoid.h"
+#include "toolhead_error.h"
+
 /*enum components
 {
   toolhead_heater,

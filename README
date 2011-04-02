@@ -1,7 +1,7 @@
 Toolhead Lib
 =============
 
-A small C99 library for thermistors, thermocouples, pid heater control, solenoid control and cnc 
+A small C89 (with GNU extensions) library for thermistors, thermocouples, pid heater control, solenoid control and cnc 
 toolheads.
 
 Toolhead Lib is designed for small microcontrollers. We currently only support Arduino however 

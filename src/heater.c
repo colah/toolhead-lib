@@ -7,15 +7,16 @@
 
 void heater_init(struct heater * h, unsigned long time)
 {
+  int i;
   // Current value defaults
   h->current = 0.0;
-  for (int i = 0; i<PID_LENGTH; i++)
+  for (i = 0; i<PID_LENGTH; i++)
     h->pid_values[i] = 0.0;
   h->at_target = 0;
 
   // Private variable defaults
   h->_target_reached_at = 0;
-  for (int i = 0; i<HEATER_HISTORY_LENGTH; i++)
+  for (i = 0; i<HEATER_HISTORY_LENGTH; i++)
     h->_history[i] = 0.0;
 
   // Resetting the rest of the heater variables
@@ -79,6 +80,7 @@ void heater_update_target_temperature_listener(struct heater * h)
 
 int heater_pump(struct heater * h, unsigned long time)
 {
+  int i; //iterator (NOT integral)
   int error_code = heater_read_sensor(h);
   float temperature = h->instantaneous;
   float previous_p = h->pid_values[pid_p];
@@ -92,7 +94,7 @@ int heater_pump(struct heater * h, unsigned long time)
 
   // Updating the averaged current temperature value. Average is over the last 5 temperature values.
   float history_sum = 0.0;
-  for (int i = HEATER_HISTORY_LENGTH-1; i>=0; i--)
+  for (i = HEATER_HISTORY_LENGTH-1; i>=0; i--)
   {
     h->_history[i] = ( (i == 0)? temperature : h->_history[i-1] );
     history_sum += h->_history[i];
@@ -131,7 +133,7 @@ int heater_pump(struct heater * h, unsigned long time)
   // Summing the pid and updating the heater
   // -----------------------------------------
   float _output = 0;
-  for (int i = 0; i < PID_LENGTH; i++)
+  for (i = 0; i < PID_LENGTH; i++)
     _output += h->pid_values[i]*h->pid_gains[i];
 
   int output = (_output < 0)? 0 : (_output > 255)? 255 : (int) _output;

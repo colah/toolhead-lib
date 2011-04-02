@@ -1,5 +1,4 @@
-#include "../src/solenoid.h"
-#include "../src/heater.h"
+#include "../src/toolhead.h"
 
 /*
  * test_hardware.c

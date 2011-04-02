@@ -1,6 +1,3 @@
-#include "../src/temperature_sensor.h"
-#include "../src/heater.h"
-#include "../src/toolhead_error.h"
 #include "../src/toolhead.h"
 #include <stdio.h>
 #include <stdlib.h>

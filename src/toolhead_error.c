@@ -4,9 +4,9 @@
 #include "temperature_sensor.h"
 #include "toolhead_error.h"
 
-char* heater_error_message(struct heater * h, int error_code)
+char* heater_error_message(struct temperature_sensor * s, int error_code)
 {
-  char* sensor_name = TEMPERATURE_SENSOR_NAMES[h->sensor->type];
+  char* sensor_name = TEMPERATURE_SENSOR_NAMES[s->type];
   char* message ="";
 
   switch (error_code)
@@ -31,7 +31,7 @@ char* heater_error_message(struct heater * h, int error_code)
     break;
   case heater_not_heating_sensor_error:
     sprintf(message,
-        "Heater is on but the temperature is not increasing. Check that both the heater and %s are connected. (target: %G)", sensor_name, h->target);
+        "Heater is on but the temperature is not increasing. Check that both the heater and %s are connected.", sensor_name);
     break;
   default:
     sprintf(message, "Unexpected error code %d, machine highly broken. Please restart machine.", error_code);

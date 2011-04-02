@@ -69,7 +69,7 @@ int heater_pump(struct heater * h, unsigned long time);
 void heater_reset(struct heater * h, unsigned long time);
 void heater_shutdown(struct heater * h);
 
-char* heater_error_message(struct heater * h, int error_code);
+char* heater_error_message(struct temperature_sensor * s, int error_code);
 
 int shutdown_heater_pins(struct heater * h);
 

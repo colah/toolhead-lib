@@ -6,17 +6,19 @@
 
 // Solenoid
 // =======================
-void init_solenoid_hardware(struct solenoid * s)
+int init_solenoid_hardware(struct solenoid * s)
 {
   pinMode(s->pin_config[0], OUTPUT);
   digitalWrite(s->pin_config[0], (s->invert_output != 0));
+  return 0;
 }
 
-void pump_solenoid_hardware(struct solenoid * s)
+int pump_solenoid(struct solenoid * s)
 {
   int target = s->_target;
   digitalWrite(s->pin_config[0], (s->invert_output != 0) ^ (target != 0));
   s->_state = target;
+  return 0;
 }
 
 
@@ -59,15 +61,17 @@ int shutdown_analog_thermal_sensor_pin(int * pin)
 
 int read_analog_thermal_sensor(int * pin, int * temperature)
 {
-  *temperature = analogRead(*pins);
+  *temperature = analogRead(*pin);
   return 0;
 }
 
 
 //TODO: untested.
-int read_max6675(int * pins, int * temperature)
+int read_max6675(struct heater * h, int * temperature)
 {
   int value = 0;
+  int * pins = h->heater_pins;
+  int error_code = 0;
   //TODO: non-arduino-specific max6675 implementation
   digitalWrite(pins[max6755_ss], 0); // Enable device
 
@@ -99,6 +103,7 @@ int read_max6675(int * pins, int * temperature)
   }
   else
     *temperature = value/4;
+  return error_code;
 }
 
 #endif

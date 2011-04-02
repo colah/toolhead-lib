@@ -74,11 +74,12 @@ void add_toolhead(struct toolhead * t)
   // Growing the array if necessary
   if (toolhead_array.size + 1 > toolhead_array.alloc_size)
   {
+      int i;
       toolhead_array.alloc_size *= 2;
       struct toolhead ** old_array = toolhead_array.array;
       toolhead_array.array = malloc(toolhead_array.alloc_size * sizeof(struct toolhead *));
 
-      for(int i=0; i<toolhead_array.size; i++)
+      for(i=0; i<toolhead_array.size; i++)
       {
           toolhead_array.array[i] = old_array[i];
       }
@@ -97,7 +98,8 @@ void remove_toolhead(struct toolhead * t)
 {
   if (toolhead_array_init_flag == 0) init_toolhead_array();
   int offset = 0;
-  for(int i=0; i<toolhead_array.size; i++)
+  int i;
+  for(i=0; i<toolhead_array.size; i++)
   {
       if (toolhead_array.array[i] == t) offset = 1;
       if (offset != 0 && i != toolhead_array.size)
@@ -111,8 +113,8 @@ int pump_all_toolheads(unsigned long time)
 {
   int error_code = 0;
   if (toolhead_array_init_flag == 0) init_toolhead_array();
-
-  for(int i=0; i<toolhead_array.size; i++)
+  int i;
+  for(i=0; i<toolhead_array.size; i++)
   {
       error_code |= pump_toolhead(toolhead_array.array[i], time);
   }
@@ -127,7 +129,8 @@ struct toolhead * get_toolhead(int index)
 int shutdown_all_toolheads()
 {
   int error_code = 0;
-  for(int i=0; i<toolhead_array.size; i++)
+  int i;
+  for(i=0; i<toolhead_array.size; i++)
   {
       struct toolhead * t = toolhead_array.array[i];
       error_code |= shutdown_heater_pins(t->heater);
