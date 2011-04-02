@@ -11,6 +11,8 @@
 
 void init_toolhead(struct toolhead * t)
 {
+  t = malloc(sizeof(struct toolhead));
+
   t->heater = NULL;
   t->motor_data = NULL;
   t->pump_motor = NULL;

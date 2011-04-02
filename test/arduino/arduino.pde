@@ -13,6 +13,8 @@ struct temperature_sensor temp;
 struct heater heat;
 struct toolhead tool;
 
+int temp_pin = A0;
+
 void setup()
 {
   // Toolhead setup
@@ -23,16 +25,14 @@ void setup()
   heat.sensor = &temp;
 
   // Temperature sensor setup
-  int temp_pin = A0;
   init_temperature_sensor(&temp);
-  temp.pins = &temp_pin;
+  temp.pins = (int*)malloc(sizeof(int));
+  * (temp.pins) = A0;
   temp.raw_read = read_analog_thermal_sensor;
   init_analog_thermal_sensor_pin(temp.pins); //TODO: this sucks as a solution
-  digitalWrite(A0, HIGH);
   Serial.begin(9600); 
 
   Serial.println("setup complete");
-
 }
 
 void loop()

@@ -8,10 +8,14 @@
 void heater_init(struct heater * h, unsigned long time)
 {
   int i;
+
   // Current value defaults
   h->current = 0.0;
   for (i = 0; i<PID_LENGTH; i++)
+  {
     h->pid_values[i] = 0.0;
+    h->pid_gains[i] = 0.0;
+  }
   h->at_target = 0;
 
   // Private variable defaults
