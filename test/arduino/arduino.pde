@@ -23,15 +23,22 @@ void setup()
   heat.sensor = &temp;
 
   // Temperature sensor setup
-  int temp_pin = 0;
+  int temp_pin = A0;
   init_temperature_sensor(&temp);
   temp.pins = &temp_pin;
   temp.raw_read = read_analog_thermal_sensor;
+  init_analog_thermal_sensor_pin(temp.pins); //TODO: this sucks as a solution
+  digitalWrite(A0, HIGH);
+  Serial.begin(9600); 
+
+  Serial.println("setup complete");
+
 }
 
 void loop()
 {
-  delay(1000);
+  Serial.println("loop");
+  delay(500);
   test_ad595_thermocouple();
 }
 
@@ -54,4 +61,7 @@ void test_ad595_thermocouple()
       Serial.print(heater_error_message(&temp, error));
   }
   Serial.println();
+  //int raw_analog_input = analogRead(A0);
+  //Serial.println(raw_analog_input);
+  //Serial.println(( 5.0 * (raw_analog_input) * 100.0) / 1024.0);
 }

@@ -50,7 +50,7 @@ int shutdown_heater_pins(struct heater * h)
 int init_analog_thermal_sensor_pin(int * pin)
 {
    pinMode(*pin, INPUT);
-   digitalWrite(*pin, 1); // pull down resistor for the sensor input
+   digitalWrite(*pin, HIGH); // pull down resistor for the sensor input
 
    return 0;
 }
@@ -61,6 +61,7 @@ int shutdown_analog_thermal_sensor_pin(int * pin)
 
 int read_analog_thermal_sensor(int * pin, int * temperature)
 {
+  analogRead(*pin);
   *temperature = analogRead(*pin);
   return 0;
 }

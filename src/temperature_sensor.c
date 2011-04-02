@@ -15,7 +15,7 @@ int read_raw_temperature_sensor_input(struct temperature_sensor * sensor, int * 
   int error_code = sensor->raw_read(sensor->pins, raw_analog_input);
 
   // Fatal error if the sensor is disconnected
-  if (*raw_analog_input == 1023)
+  if (*raw_analog_input > 1010) // ~ 1023 because arduinos have very weak pull down resistors
     error_code |= temperature_sensor_disconnected_error;
 
   return error_code;
