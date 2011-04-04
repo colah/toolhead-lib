@@ -11,3 +11,6 @@
 *.la
 *.a
 
+#Excutables created by this code
+Debug/toolhead-lib
+Release/toolhead-lib

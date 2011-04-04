@@ -43,7 +43,7 @@ struct heater
 
   int (* init_heater_pins) (int *); // int * pins
   int (* write_heater_pins) (int *, char); //int * pins, byte value
-  void (* shutdown_heater_pins) (int *); // int * pins
+  int (* shutdown_heater_pins) (struct heater *); // int * pins
 
   /** Event called each time the temperature stabilises at or slightly above the target temperature. */
   int (* target_temperature_listener)();

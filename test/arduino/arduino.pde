@@ -15,14 +15,14 @@ struct toolhead tool;
 
 enum
 {
-  AD595,
-  THERMISTOR,
-  HEATER_NONE,
-  HEATER_P,
-  HEATER_I,
-  HEATER_D,
-  HEATER_ALL
-}
+  AD595 = 'a',
+  THERMISTOR = 't',
+  HEATER_NONE = '0',
+  HEATER_P = 'p',
+  HEATER_I = 'i',
+  HEATER_D = 'd',
+  HEATER_ALL = '3'
+};
 
 
 int temp_pin = A0;
@@ -37,7 +37,7 @@ void setup()
   tool.heater = &heat;
 
   // Heater setup
-  heater_init(&heat);
+  heater_init(&heat, millis());
   heat.sensor = &temp;
   *(heat.heater_pins) = heater_pin;
   heat.thermal_cutoff = 300;
@@ -62,7 +62,8 @@ void test_analog_sensor()
 {
   int reading;
   int error = read_temperature_sensor(&temp, &reading);
-  Serial.print("ad595 temperature reading:");
+  Serial.print(TEMPERATURE_SENSOR_NAMES[temp.type]);
+  Serial.print(" reading: ");
   Serial.print(reading);
   if (error != 0)
   {
@@ -87,7 +88,7 @@ void test_thermistor()
 void test_heater()
 {
   Serial.print("pumping heater.. ");
-  int error = heater_pump(&heat);
+  int error = heater_pump(&heat, millis());
   if (error != 0)
   {
       Serial.print(" error: ");
@@ -100,11 +101,16 @@ void test_heater()
 void loop()
 {
   Serial.println("loop");
-  delay(3000);
+  delay(1000);
+  while (Serial.available() > 0) {
+    mode = Serial.read();
+  }
   
   int i = 0;
   for (i = 0; i<PID_LENGTH; i++)
+  {
     heat.pid_values[i] = 0.0;
+  }
 
   
   switch(mode)
@@ -118,34 +124,35 @@ void loop()
     {
       test_thermistor();
       break;
-    case: HEATER_NONE
+    }
+    case HEATER_NONE:
     {
       test_heater();
       break;
     }
-    case: HEATER_P
+    case HEATER_P:
     {
-      heat.pid_values[p] = 1;
+      heat.pid_values[pid_p] = 1;
       test_heater();
       break;
     }
-    case: HEATER_I
+    case HEATER_I:
     {
-      heat.pid_values[i] = 0.1;
+      heat.pid_values[pid_i] = 0.1;
       test_heater();
       break;
     }
-    case: HEATER_D
+    case HEATER_D:
     {
-      heat.pid_values[d] = 10;
+      heat.pid_values[pid_d] = 10;
       test_heater();
       break;
     }
-    case: HEATER_ALL
+    case HEATER_ALL:
     {
-      heat.pid_values[p] = 1;
-      heat.pid_values[i] = 0.1;
-      heat.pid_values[d] = 10;
+      heat.pid_values[pid_p] = 1;
+      heat.pid_values[pid_i] = 0.1;
+      heat.pid_values[pid_d] = 10;
       test_heater();
       break;
     }
