@@ -98,10 +98,16 @@ void test_heater()
   Serial.print("pumping heater.. ");
   Serial.print(" temperature: ");
   Serial.print(heat.current);
+  Serial.print(" instant temperature: ");
+  Serial.print(heat.instantaneous);
   Serial.print(" target: ");
   Serial.print(heat.target);
   Serial.print(" at_target: ");
   Serial.print( (heat.at_target==1)? "true" : "false" );
+  Serial.println();
+  
+  Serial.print("_last_sensor_heating: ");
+  Serial.print(heat._last_sensor_heating);
   Serial.println();
 
   Serial.print("p: ");
@@ -113,6 +119,10 @@ void test_heater()
   Serial.print("  (gains)");
   Serial.println();
 
+  int error = 0;
+  int dt = heater_pump(&heat, millis());
+  Serial.println(dt);
+
   Serial.print("p: ");
   Serial.print(heat.pid_values[pid_p]);
   Serial.print("  i: ");
@@ -123,7 +133,6 @@ void test_heater()
   Serial.println();
 
   Serial.println();
-  int error = heater_pump(&heat, millis());
   printError(error);
   Serial.println();
 }
@@ -141,7 +150,7 @@ void loop()
   int i = 0;
   for (i = 0; i<PID_LENGTH; i++)
   {
-    heat.pid_values[i] = 0.0;
+    heat.pid_gains[i] = 0.0;
   }
 
   
@@ -182,9 +191,9 @@ void loop()
     }
     case HEATER_ALL:
     {
-      heat.pid_values[pid_p] = 1;
-      heat.pid_values[pid_i] = 0.1;
-      heat.pid_values[pid_d] = 10;
+      heat.pid_gains[pid_p] = 1;
+      heat.pid_gains[pid_i] = 0.1;
+      heat.pid_gains[pid_d] = 10;
       test_heater();
       break;
     }

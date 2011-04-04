@@ -3,6 +3,7 @@
 #include "toolhead_error.h"
 #include "temperature_sensor.h"
 #include "heater.h"
+#include <math.h>
 //#include "pins_arduino.h"
 
 void heater_init(struct heater * h, unsigned long time)
@@ -17,6 +18,7 @@ void heater_init(struct heater * h, unsigned long time)
     h->pid_gains[i] = 0.0;
   }
   h->at_target = 0;
+  h->heater_timeout = 0;
 
   // Private variable defaults
   h->_target_reached_at = 0;
@@ -91,11 +93,19 @@ int heater_pump(struct heater * h, unsigned long time)
   float previous_p = h->pid_values[pid_p];
 
   // Updating the time since the last iteration
-  float dt = 0.001*(float)(time - h->_previous_time);
+  int dt = (int)(time - h->_previous_time); // in miliseconds
   h->_previous_time = time;
   if (dt <= 0) // Don't execute the pid when time has rolled over
     return error_code;
 
+  if (h->_previous_target != h->target || time < h->_last_sensor_heating)
+    h->_last_sensor_heating = time;
+
+  if (time - h->_last_sensor_heating > h->heater_timeout || h->heater_timeout == 0)
+  {
+    // Temp isn't increasing - extruder hardware error
+    error_code = heater_not_heating_sensor_error;
+  }
 
   // Updating the averaged current temperature value. Average is over the last 5 temperature values.
   float history_sum = 0.0;
@@ -114,25 +124,20 @@ int heater_pump(struct heater * h, unsigned long time)
 
   // Calculating integral value
   // ----------------------------
-  float integral = h->pid_values[pid_i] + h->pid_values[pid_p]*dt;
-  // Prevent integral overshoots
-  if(integral > PID_INTEGRAL_LIMIT)
+  float integral = h->pid_values[pid_i] + (h->pid_values[pid_p]*dt)*0.001;
+
+  // Prevent integral overshoots/wind-down from getting too large
+  if(abs(integral) > PID_INTEGRAL_LIMIT)
   {
-    // Temp isn't increasing - extruder hardware error
-    error_code = heater_not_heating_sensor_error;
-    integral = PID_INTEGRAL_LIMIT;
+    integral = ( (integral>= 0)? 1 : -1 ) * PID_INTEGRAL_LIMIT;
   }
-  // Integral below limit (integral wind-down?)
-  if(integral < -PID_INTEGRAL_LIMIT)
-  {
-    integral = -PID_INTEGRAL_LIMIT;
-  }
+
   h->pid_values[pid_i] = integral;
 
 
   // Calculating derivative value
   // ------------------------------
-  h->pid_values[pid_d] = (h->pid_values[pid_p] - previous_p )/dt;
+  h->pid_values[pid_d] = ( 1000 * (h->pid_values[pid_p] - previous_p ) )/((float)dt);
 
 
   // Summing the pid and updating the heater
@@ -164,6 +169,7 @@ void heater_reset(struct heater * h, unsigned long time)
   h->_previous_time = time;
   h->pid_values[pid_p] = 0;
   h->pid_values[pid_i] = 0;
+  h->_last_sensor_heating = time;
 }
 
 
@@ -173,7 +179,7 @@ void heater_reset(struct heater * h, unsigned long time)
 void heater_shutdown(struct heater * h)
 {
   if (h == NULL) return;
-  if (h->shutdown_heater_pins != NULL) h->shutdown_heater_pins(h->heater_pins);
+  if (h->shutdown_heater_pins != NULL) h->shutdown_heater_pins(h);
   free(h);        /* free the structure itself */
 }
 

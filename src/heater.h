@@ -26,6 +26,7 @@ struct heater
   // Heater Settings
   int * heater_pins;
   float pid_gains[PID_LENGTH]; // configurable gain constants for each of proportional integral and derivative.
+  int heater_timeout;
 
   // Temperature Sensor Settings
   struct temperature_sensor * sensor;
@@ -54,6 +55,7 @@ struct heater
   /* ms in the time the target temperature dead-zone was reached or zero if outside the dead-zone */
   unsigned long _target_reached_at;
   int _raw_analog_input;
+  unsigned long _last_sensor_heating; // the last time the derivative was increasing while the heater was enabled
 
   float _history[HEATER_HISTORY_LENGTH]; // previous temperature values
 };
