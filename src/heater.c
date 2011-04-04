@@ -98,14 +98,6 @@ int heater_pump(struct heater * h, unsigned long time)
   if (dt <= 0) // Don't execute the pid when time has rolled over
     return error_code;
 
-  if (h->_previous_target != h->target || time < h->_last_sensor_heating)
-    h->_last_sensor_heating = time;
-
-  if (time - h->_last_sensor_heating > h->heater_timeout || h->heater_timeout == 0)
-  {
-    // Temp isn't increasing - extruder hardware error
-    error_code = heater_not_heating_sensor_error;
-  }
 
   // Updating the averaged current temperature value. Average is over the last 5 temperature values.
   float history_sum = 0.0;
@@ -138,6 +130,18 @@ int heater_pump(struct heater * h, unsigned long time)
   // Calculating derivative value
   // ------------------------------
   h->pid_values[pid_d] = ( 1000 * (h->pid_values[pid_p] - previous_p ) )/((float)dt);
+
+
+  // Heater not heating sensor error
+  // ----------------------------------
+  if (h->_previous_target != h->target || time < h->_last_sensor_heating || h->pid_values[pid_d] > 0)
+    h->_last_sensor_heating = time;
+
+  if (time - h->_last_sensor_heating > h->heater_timeout && h->heater_timeout != 0)
+  {
+    // Temp isn't increasing - extruder hardware error
+    error_code = heater_not_heating_sensor_error;
+  }
 
 
   // Summing the pid and updating the heater

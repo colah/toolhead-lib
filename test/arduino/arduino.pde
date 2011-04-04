@@ -42,6 +42,7 @@ void setup()
   *(heat.heater_pins) = heater_pin;
   heat.thermal_cutoff = 300;
   heat.target = 100;
+  heat.heater_timeout = 5000;
 
   //TODO: these should be implicit.
   heat.init_heater_pins = init_heater_pins;
@@ -106,7 +107,9 @@ void test_heater()
   Serial.print( (heat.at_target==1)? "true" : "false" );
   Serial.println();
   
-  Serial.print("_last_sensor_heating: ");
+  Serial.print("heater_timeout: ");
+  Serial.print(heat.heater_timeout);
+  Serial.print(" _last_sensor_heating: ");
   Serial.print(heat._last_sensor_heating);
   Serial.println();
 
@@ -119,9 +122,7 @@ void test_heater()
   Serial.print("  (gains)");
   Serial.println();
 
-  int error = 0;
-  int dt = heater_pump(&heat, millis());
-  Serial.println(dt);
+  int error = heater_pump(&heat, millis());
 
   Serial.print("p: ");
   Serial.print(heat.pid_values[pid_p]);
