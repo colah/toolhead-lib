@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "heater.h"
 #include "solenoid.h"
 #include "toolhead.h"
@@ -87,15 +88,12 @@ void add_toolhead(struct toolhead * t)
   // Growing the array if necessary
   if (toolhead_array.size + 1 > toolhead_array.alloc_size)
   {
-      int i;
       toolhead_array.alloc_size *= 2;
       struct toolhead ** old_array = toolhead_array.array;
-      toolhead_array.array = malloc(toolhead_array.alloc_size * sizeof(struct toolhead *));
+      toolhead_array.array = calloc(toolhead_array.alloc_size, sizeof(struct toolhead *));
 
-      for(i=0; i<toolhead_array.size; i++)
-      {
-          toolhead_array.array[i] = old_array[i];
-      }
+      memcpy(toolhead_array.array, old_array, toolhead_array.size * sizeof(struct toolhead *));
+
       free(old_array);
   }
   // Adding the new toolhead
@@ -115,8 +113,12 @@ int remove_toolhead(struct toolhead * t)
   for(i=0; i<toolhead_array.size; i++)
   {
       if (toolhead_array.array[i] == t) offset = 1;
-      if (offset != 0 && i != toolhead_array.size)
+      if (offset != 0 && i != toolhead_array.size) {
         toolhead_array.array[i] = toolhead_array.array[i+offset];
+        free(toolhead_array.array[i]);
+        memmove(&toolhead_array.array[i], &toolhead_array.array[i + 1], toolhead_array.size - (i - 1));
+        break;
+      }
   }
   toolhead_array.size--;
 
@@ -150,7 +152,14 @@ int shutdown_all_toolheads()
   {
       struct toolhead * t = toolhead_array.array[i];
       error_code |= shutdown_heater_pins(t->heater);
+
       //TODO: more shutdown logic here for solenoids, etc.
+
+      //TODO: Free toolheads
+      free(t);
   }
+
+  free(toolhead_array.array);
+
   return error_code;
 }
