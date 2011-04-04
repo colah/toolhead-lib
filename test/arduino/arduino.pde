@@ -32,7 +32,7 @@ enum
 
 int temp_pin = A0;
 int heater_pin = 13;
-int valve_pin = 19;
+int valve_pin = 12;
 
 int mode = AD595;
 
@@ -163,7 +163,7 @@ void test_solenoid_status()
 void test_solenoid_flip()
 {
   Serial.print("Setting solenoid target state to: ");
-  set_solenoid(!noid._state);
+  set_solenoid(&noid, !noid._state);
   Serial.println(noid._target);
 }
 
