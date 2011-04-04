@@ -99,15 +99,15 @@ void add_toolhead(struct toolhead * t)
       free(old_array);
   }
   // Adding the new toolhead
-  toolhead_array.size++;
   toolhead_array.array[toolhead_array.size] = t;
+  toolhead_array.size++;
 }
 
 
 //TODO: fix memory leak: the toolhead_array alloc_size never shrinks.
 // Note this memory leak will rarely be relevant because it will only grow to the max
 // number of toolheads used simultaneously with the machine.
-void remove_toolhead(struct toolhead * t)
+int remove_toolhead(struct toolhead * t)
 {
   if (toolhead_array_init_flag == 0) init_toolhead_array();
   int offset = 0;
@@ -119,6 +119,9 @@ void remove_toolhead(struct toolhead * t)
         toolhead_array.array[i] = toolhead_array.array[i+offset];
   }
   toolhead_array.size--;
+
+  //Return if we successfully found the toolhead.
+  return (!offset);
 }
 
 

@@ -49,7 +49,7 @@ void add_toolhead(struct toolhead * t);
 /*
  * removes the toolhead, shuts down it's components and frees it's memory. (todo: free/shutdown)
  */
-void remove_toolhead(struct toolhead *t);
+int remove_toolhead(struct toolhead *t);
 
 struct toolhead * get_toolhead(int index);
 

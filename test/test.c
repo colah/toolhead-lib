@@ -25,6 +25,18 @@ void verify_float_test(char* test_name, float actual, float expected)
   }
 }
 
+void verify_int_test(char* test_name, int actual, int expected)
+{
+  if (actual != expected)
+  {
+    fprintf(stderr, "FAILURE: %s   (actual: %d, expected: %d)\n", test_name, actual, expected);
+  }
+  else
+  {
+    printf("SUCCESS: %s\n", test_name);
+  }
+}
+
 //Checks if two pointers point to the same thing.
 void verify_pointer_test(char* test_name, void * actual, void * expected)
 {
@@ -144,27 +156,32 @@ void test_heater()
 
 void test_toolhead ()
 {
-  int num_toolheads_in_array = 0;
-
   //Initialize some tools to check.
   //Check NULLS
-  struct toolhead * tool1 = malloc(sizeof(struct toolhead));;
-  struct toolhead * tool2 = malloc(sizeof(struct toolhead));;
+  struct toolhead * toolA = malloc(sizeof(struct toolhead));
+  struct toolhead * toolB = malloc(sizeof(struct toolhead));
 
-  init_toolhead(tool1);
-  init_toolhead(tool2);
+  verify_int_test("Toolhead init: malloc test1", init_toolhead(toolA), 0);
+  verify_int_test("Toolhead init: malloc test2", init_toolhead(toolB), 0);
 
-  verify_pointer_test("Toolhead init: NULL fill check", tool1->fan, NULL);
+  verify_pointer_test("Toolhead init: NULL fill check", toolA->fan, NULL);
 
-  //TODO initial toolhead array (self initialize)
-
-  add_toolhead(tool1);
-  add_toolhead(tool2);
+  //Add check
+  add_toolhead(toolA);
+  add_toolhead(toolB);
   //Check that the first toolhead is now that toolhead we just added
-  verify_pointer_test("Toolhead array add: Toolheads pointer identical", get_toolhead(0), tool1);
+  verify_pointer_test("Toolhead array add: array index 0 == toolA check", get_toolhead(0), toolA);
+  verify_pointer_test("Toolhead array add: array index 1 == toolB check", get_toolhead(1), toolB);
 
+  //get_toolhead out of bounds sanity check
+  verify_pointer_test("Toolhead array get: Out of Bounds sanity check", get_toolhead(999), NULL);
 
-  //TODO NULL return check when out of array bounds
+  //Remove Check
+  verify_int_test("Toolhead array remove: Remove toolhead 0", remove_toolhead(get_toolhead(0)), 0);
+  verify_pointer_test("Toolhead array remove: array index 0 == toolB check", get_toolhead(0), toolB);
+
+  //get_toolhead out of bounds after remove
+  verify_pointer_test("Toolhead array get: Out of Bounds index check of index 1 after removed", get_toolhead(1), NULL);
 
 }
 
