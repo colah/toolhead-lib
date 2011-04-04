@@ -134,8 +134,13 @@ int heater_pump(struct heater * h, unsigned long time)
 
   // Heater not heating sensor error
   // ----------------------------------
-  if (h->_previous_target != h->target || time < h->_last_sensor_heating || h->pid_values[pid_d] > 0)
+  if (h->_previous_target != h->target ||
+      time < h->_last_sensor_heating ||
+      h->pid_values[pid_d] > 0 ||
+      temperature >= h->target - HALF_DEAD_ZONE)
+  {
     h->_last_sensor_heating = time;
+  }
 
   if (time - h->_last_sensor_heating > h->heater_timeout && h->heater_timeout != 0)
   {

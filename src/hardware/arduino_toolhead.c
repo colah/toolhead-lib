@@ -49,7 +49,6 @@ int shutdown_heater_pins(struct heater * h)
 
 int init_analog_thermal_sensor_pin(int * pin)
 {
-   Serial.println(*pin);
    pinMode(*pin, INPUT);
    digitalWrite(*pin, HIGH); // pull up resistor for the sensor input
 

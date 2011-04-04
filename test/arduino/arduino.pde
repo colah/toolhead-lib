@@ -39,7 +39,7 @@ void setup()
   // Heater setup
   heater_init(&heat, millis());
   heat.sensor = &temp;
-  *(heat.heater_pins) = heater_pin;
+  heat.heater_pins = &heater_pin;
   heat.thermal_cutoff = 300;
   heat.target = 100;
   heat.heater_timeout = 5000;
