@@ -56,6 +56,6 @@ struct toolhead * get_toolhead(int index);
 /*
  * Must be run before any toolhead components are set.
  */
-void init_toolhead(struct toolhead *t);
+int init_toolhead(struct toolhead *t);
 
 #endif

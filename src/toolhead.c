@@ -9,9 +9,18 @@
  * Toolhead Functions
  * ======================= */
 
-void init_toolhead(struct toolhead * t)
+int init_toolhead(struct toolhead * t)
 {
-  t = malloc(sizeof(struct toolhead));
+  //BAD. Caller should malloc.
+  //t = malloc(sizeof(struct toolhead));
+
+  //Check the caller has malloced properly
+  if(t == NULL)
+  {
+    //BADWRONG should never happen. Should barf.
+    //TODO Nice error propogation.
+    return 1;
+  }
 
   t->heater = NULL;
   t->motor_data = NULL;
@@ -19,6 +28,8 @@ void init_toolhead(struct toolhead * t)
   t->valve = NULL;
   t->fan = NULL;
   t->coolant = NULL;
+
+  return 0;
 }
 
 int pump_toolhead_solenoid(struct solenoid * s)
