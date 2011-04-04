@@ -45,13 +45,14 @@ struct heater
   int (* write_heater_pins) (int *, char); //int * pins, byte value
   void (* shutdown_heater_pins) (int *); // int * pins
 
-  /** Event called each time the temperature stabalizes at or slightly above the target temperature. */
+  /** Event called each time the temperature stabilises at or slightly above the target temperature. */
   int (* target_temperature_listener)();
 
   // Private values
   float _previous_target;
   unsigned long _previous_time; // ms
-  unsigned long _target_reached_at; // ms in the time the target temperature deadzone was reached or zero if outside the deadzone
+  /* ms in the time the target temperature dead-zone was reached or zero if outside the dead-zone */
+  unsigned long _target_reached_at;
   int _raw_analog_input;
 
   float _history[HEATER_HISTORY_LENGTH]; // previous temperature values

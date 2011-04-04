@@ -17,5 +17,7 @@ int shutdown_analog_thermal_sensor_pin(int * pin);
 int read_analog_thermal_sensor(int * pin, int * temperature);
 int read_max6675(int * pins, int * temperature);
 
+int write_heater_pins(int * heater_pin, char value);
+
 
 #endif
