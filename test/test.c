@@ -13,11 +13,24 @@ int test_analog_read(int * pin, int * temperature)
 }
 
 
-void verify_test(char* test_name, float actual, float expected)
+void verify_float_test(char* test_name, float actual, float expected)
 {
   if (actual != expected)
   {
     fprintf(stderr, "FAILURE: %s   (actual: %f, expected: %f)\n", test_name, actual, expected);
+  }
+  else
+  {
+    printf("SUCCESS: %s\n", test_name);
+  }
+}
+
+//Checks if two pointers point to the same thing.
+void verify_pointer_test(char* test_name, void * actual, void * expected)
+{
+  if(actual != expected)
+  {
+    fprintf(stderr, "FAILURE: %s   (actual: %p, expected: %p)\n", test_name, actual, expected);
   }
   else
   {
@@ -44,7 +57,7 @@ void test_temperature_sensors()
 
   // Thermistor Test 1: normal operation
   pin_value = 100;
-  verify_test(
+  verify_float_test(
     "Thermistor Test 1: Normal Operation",
     read_temperature_sensor(sensor, &temperature),
     0
@@ -53,7 +66,7 @@ void test_temperature_sensors()
 
   // Thermistor Test 2: thermistor disconnected
   pin_value = 1023;
-  verify_test(
+  verify_float_test(
     "Thermistor Test 2: Thermistor Disconnected",
     read_temperature_sensor(sensor, &temperature),
     temperature_sensor_disconnected_error
@@ -67,7 +80,7 @@ void test_temperature_sensors()
 
   //AD595 Test 1: normal operation
   pin_value = 100;
-  verify_test(
+  verify_float_test(
     "AD595 Test 1: Normal Operation",
     read_temperature_sensor(sensor, &temperature),
     0
@@ -76,7 +89,7 @@ void test_temperature_sensors()
 
   //AD595 Test 2: thermocouple disconnected from ad595 or ad595 disconnected from MCU
   pin_value = 1023;
-  verify_test(
+  verify_float_test(
     "AD595 Test 2: Thermocouple disconnected from AD595 or ad595 disconnected from MCU",
     read_temperature_sensor(sensor, &temperature),
     temperature_sensor_disconnected_error
@@ -120,19 +133,46 @@ void test_heater()
 
   heater_pump(h, time);
 
-  verify_test("Normal Heater Operation: Averaged Current Value", h->current, average);
-  verify_test("Normal Heater Operation: Instantaneous Value", h->instantaneous, instantaneous);
-  verify_test("Normal Heater Operation: P", h->pid_values[pid_p], error);
-  verify_test("Normal Heater Operation: I", h->pid_values[pid_i], integral);
-  verify_test("Normal Heater Operation: D", h->pid_values[pid_d], derivative);
+  verify_float_test("Normal Heater Operation: Averaged Current Value", h->current, average);
+  verify_float_test("Normal Heater Operation: Instantaneous Value", h->instantaneous, instantaneous);
+  verify_float_test("Normal Heater Operation: P", h->pid_values[pid_p], error);
+  verify_float_test("Normal Heater Operation: I", h->pid_values[pid_i], integral);
+  verify_float_test("Normal Heater Operation: D", h->pid_values[pid_d], derivative);
 
 }
 
+
+void test_toolhead ()
+{
+  int num_toolheads_in_array = 0;
+
+  //Initialize some tools to check.
+  //Check NULLS
+  struct toolhead * tool1 = malloc(sizeof(struct toolhead));;
+  struct toolhead * tool2 = malloc(sizeof(struct toolhead));;
+
+  init_toolhead(tool1);
+  init_toolhead(tool2);
+
+  verify_pointer_test("Toolhead init: NULL fill check", tool1->fan, NULL);
+
+  //TODO initial toolhead array (self initialize)
+
+  add_toolhead(tool1);
+  add_toolhead(tool2);
+  //Check that the first toolhead is now that toolhead we just added
+  verify_pointer_test("Toolhead array add: Toolheads pointer identical", get_toolhead(0), tool1);
+
+
+  //TODO NULL return check when out of array bounds
+
+}
 
 int main(void)
 {
   test_temperature_sensors();
   test_heater();
+  test_toolhead();
 
   return 0;
 }
