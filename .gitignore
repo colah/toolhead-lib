@@ -11,6 +11,9 @@
 *.la
 *.a
 
+# Compiled Eclipse Debug Files
+*.d
+
 #Excutables created by this code
 Debug/toolhead-lib
 Release/toolhead-lib

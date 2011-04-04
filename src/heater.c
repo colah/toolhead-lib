@@ -55,7 +55,7 @@ int heater_read_sensor(struct heater * h)
 
 void heater_update_target_temperature_listener(struct heater * h)
 {
-  int inside_deadzone = ( h->current >= h->target - HALF_DEAD_ZONE );
+  int inside_deadzone = ( fabs(h->current - h->target) <= HALF_DEAD_ZONE );
 
   if (h->_previous_target != h->target || inside_deadzone == 0)
   {
@@ -67,7 +67,8 @@ void heater_update_target_temperature_listener(struct heater * h)
   if(inside_deadzone)
   {
     // reset the timestamp if we have rolled over the timestamp or we he have just reached the target.
-    if (h->_target_reached_at == 0 || h->_target_reached_at > h->_previous_time) h->_target_reached_at = h->_previous_time;
+    if (h->_target_reached_at == 0 || h->_target_reached_at > h->_previous_time)
+      h->_target_reached_at = h->_previous_time;
 
     // wait to verify the temperature has stabalized in the deadzone before signalling
     // that we have reached the target temperature.

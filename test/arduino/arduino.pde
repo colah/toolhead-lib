@@ -41,6 +41,7 @@ void setup()
   heat.sensor = &temp;
   *(heat.heater_pins) = heater_pin;
   heat.thermal_cutoff = 300;
+  heat.target = 100;
 
   //TODO: these should be implicit.
   heat.init_heater_pins = init_heater_pins;
@@ -58,6 +59,17 @@ void setup()
   Serial.println("setup complete");
 }
 
+void printError(int error)
+{
+  if (error != 0)
+  {
+      Serial.print(" error: ");
+      char * error_msg = heater_error_message(&temp, error);
+      Serial.print(error_msg);
+      free(error_msg);
+  }
+}
+
 void test_analog_sensor()
 {
   int reading;
@@ -65,11 +77,7 @@ void test_analog_sensor()
   Serial.print(TEMPERATURE_SENSOR_NAMES[temp.type]);
   Serial.print(" reading: ");
   Serial.print(reading);
-  if (error != 0)
-  {
-      Serial.print(" error: ");
-      Serial.print(heater_error_message(&temp, error));
-  }
+  printError(error);
   Serial.println();
 }
 
@@ -88,12 +96,35 @@ void test_thermistor()
 void test_heater()
 {
   Serial.print("pumping heater.. ");
+  Serial.print(" temperature: ");
+  Serial.print(heat.current);
+  Serial.print(" target: ");
+  Serial.print(heat.target);
+  Serial.print(" at_target: ");
+  Serial.print( (heat.at_target==1)? "true" : "false" );
+  Serial.println();
+
+  Serial.print("p: ");
+  Serial.print(heat.pid_gains[pid_p]);
+  Serial.print("  i: ");
+  Serial.print(heat.pid_gains[pid_i]);
+  Serial.print("  d: ");
+  Serial.print(heat.pid_gains[pid_d]);
+  Serial.print("  (gains)");
+  Serial.println();
+
+  Serial.print("p: ");
+  Serial.print(heat.pid_values[pid_p]);
+  Serial.print("  i: ");
+  Serial.print(heat.pid_values[pid_i]);
+  Serial.print("  d: ");
+  Serial.print(heat.pid_values[pid_d]);
+  Serial.print("  (values)");
+  Serial.println();
+
+  Serial.println();
   int error = heater_pump(&heat, millis());
-  if (error != 0)
-  {
-      Serial.print(" error: ");
-      Serial.print(heater_error_message(&temp, error));
-  }
+  printError(error);
   Serial.println();
 }
 
@@ -103,7 +134,8 @@ void loop()
   Serial.println("loop");
   delay(1000);
   while (Serial.available() > 0) {
-    mode = Serial.read();
+    int new_char = Serial.read();
+    if (new_char != '\n') mode = new_char;
   }
   
   int i = 0;
@@ -132,19 +164,19 @@ void loop()
     }
     case HEATER_P:
     {
-      heat.pid_values[pid_p] = 1;
+      heat.pid_gains[pid_p] = 1;
       test_heater();
       break;
     }
     case HEATER_I:
     {
-      heat.pid_values[pid_i] = 0.1;
+      heat.pid_gains[pid_i] = 0.1;
       test_heater();
       break;
     }
     case HEATER_D:
     {
-      heat.pid_values[pid_d] = 10;
+      heat.pid_gains[pid_d] = 10;
       test_heater();
       break;
     }
