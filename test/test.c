@@ -30,7 +30,7 @@ void verify_pointer_test(char* test_name, void * actual, void * expected)
 {
   if(actual != expected)
   {
-    fprintf(stderr, "FAILURE: %s   (actual: %f, expected: %f)\n", test_name, actual, expected);
+    fprintf(stderr, "FAILURE: %s   (actual: %p, expected: %p)\n", test_name, actual, expected);
   }
   else
   {
@@ -158,10 +158,10 @@ void test_toolhead ()
 
   //TODO initial toolhead array (self initialize)
 
-   add_toolhead(tool1);
-   add_toolhead(tool2);
-   //Check that the first toolhead is now that toolhead we just added
-   verify_pointer_test("Toolhead add: First")
+  add_toolhead(tool1);
+  add_toolhead(tool2);
+  //Check that the first toolhead is now that toolhead we just added
+  verify_pointer_test("Toolhead array add: Toolheads pointer identical", get_toolhead(0), tool1);
 
 
   //TODO NULL return check when out of array bounds
