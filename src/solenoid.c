@@ -1,4 +1,4 @@
-#include "solenoid.h"
+#include <solenoid.h>
 
 void set_solenoid(struct solenoid * s, int target_state)
 {

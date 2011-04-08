@@ -1,5 +1,5 @@
-#include "toolhead_error.h"
-#include "temperature_sensor.h"
+#include <toolhead_error.h>
+#include <temperature_sensor.h>
 
 void init_temperature_sensor(struct temperature_sensor * sensor)
 {

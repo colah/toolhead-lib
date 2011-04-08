@@ -1,4 +1,4 @@
-#include "../src/toolhead.h"
+#include <toolhead.h>
 #include <stdio.h>
 #include <stdlib.h>
 

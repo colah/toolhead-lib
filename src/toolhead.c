@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "heater.h"
-#include "solenoid.h"
-#include "toolhead.h"
+#include <heater.h>
+#include <solenoid.h>
+#include <toolhead.h>
 
 
 /* =======================
